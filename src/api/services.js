@@ -1,13 +1,13 @@
 import client from './client'
 
 export const ingestRepo = (repoUrl) => {
-  return client.get('/api/ingest/', {
+  return client.post('/api/ingest/uri', {
     params: { q: repoUrl },
   })
 }
 
 export const askQuestion = (question, namespace = 'default') => {
-  return client.post('/api/chat/', {
+  return client.post('/api/chat/query', {
     question,
     namespace,
   })
