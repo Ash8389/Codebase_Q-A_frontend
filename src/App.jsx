@@ -1,33 +1,8 @@
-import { useState } from 'react'
 import RepoIngest from './components/RepoIngest'
 import ChatInterface from './components/ChatInterface'
 import './App.css'
 
-
 function App() {
-
- const [repositories, setRepositories] = useState(() => {
-    return JSON.parse(localStorage.getItem('repositories')) || []
-  })
-
-  const handleRepoAdd = (namespace) => {
-    setRepositories(prev => {
-
-      if (prev.includes(namespace)) {
-        return prev
-      }
-
-      const updated = [...prev, namespace]
-
-      localStorage.setItem(
-        'repositories',
-        JSON.stringify(updated)
-      )
-
-      return updated
-    })
-  }     
-
   return (
     <div className="app">
       <header className="app-header">
@@ -37,7 +12,7 @@ function App() {
 
       <main className="app-main">
         <aside className="sidebar">
-          <RepoIngest onRepoAdded={handleRepoAdd}/>
+          <RepoIngest />
 
           <div className="info-card">
             <h3>How it works</h3>
@@ -51,7 +26,7 @@ function App() {
         </aside>
 
         <section className="chat-section">
-          <ChatInterface repositories={repositories}/>
+          <ChatInterface />
         </section>
       </main>
     </div>

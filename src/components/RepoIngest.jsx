@@ -1,51 +1,27 @@
 import { useState } from 'react'
-import {
-  GitBranch,
-  Loader2,
-  CheckCircle,
-  AlertCircle
-} from 'lucide-react'
-
+import { GitBranch, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { ingestRepo } from '../api/services'
 
-export default function RepoIngest({ onRepoAdd }) {
-
+export default function RepoIngest() {
   const [url, setUrl] = useState('')
-  const [status, setStatus] = useState('idle')
+  const [status, setStatus] = useState('idle') // idle | loading | success | error
   const [message, setMessage] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     if (!url.trim()) return
-
-    const namespace = url
-      .substring(url.lastIndexOf('/') + 1)
 
     setStatus('loading')
     setMessage('Cloning and chunking repository...')
 
     try {
-
       await ingestRepo(url)
-
-      onRepoAdd(namespace)
-
       setStatus('success')
-      setMessage(
-        'Repository ingested successfully!'
-      )
-
+      setMessage('Repository ingested successfully! Code chunks are being embedded.')
       setUrl('')
-
     } catch (err) {
-
       setStatus('error')
-
-      setMessage(
-        err.response?.data?.message ||
-        'Failed to ingest repository'
-      )
+      setMessage(err.response?.data?.message || 'Failed to ingest repository')
     }
   }
 
@@ -59,13 +35,12 @@ export default function RepoIngest({ onRepoAdd }) {
       <form onSubmit={handleSubmit}>
         <input
           type="url"
-          placeholder="https://github.com/user/repo"
+          placeholder="https://github.com/username/repository"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           required
           className="input-field"
         />
-
         <button
           type="submit"
           disabled={status === 'loading'}
@@ -73,10 +48,7 @@ export default function RepoIngest({ onRepoAdd }) {
         >
           {status === 'loading' ? (
             <>
-              <Loader2
-                size={16}
-                className="spin"
-              />
+              <Loader2 size={16} className="spin" />
               Processing...
             </>
           ) : (
@@ -85,16 +57,11 @@ export default function RepoIngest({ onRepoAdd }) {
         </button>
       </form>
 
-      {status !== 'idle' &&
-        status !== 'loading' && (
-          <div className={`alert ${status}`}>
-            {status === 'success'
-              ? <CheckCircle size={16} />
-              : <AlertCircle size={16} />
-            }
-
-            {message}
-          </div>
+      {status !== 'idle' && status !== 'loading' && (
+        <div className={`alert ${status}`}>
+          {status === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+          {message}
+        </div>
       )}
     </div>
   )
