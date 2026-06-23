@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import RepoIngest from './components/RepoIngest'
 import ChatInterface from './components/ChatInterface'
 import './App.css'
