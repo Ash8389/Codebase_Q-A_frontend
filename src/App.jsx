@@ -3,6 +3,16 @@ import ChatInterface from './components/ChatInterface'
 import './App.css'
 
 function App() {
+
+  const [repositories, setRepositories] = useState([]);
+
+  const addRepository = (namespace) => {
+    setRepositories(prev => {
+      if (prev.includes(namespace)) return prev;
+      return [...prev, namespace];
+    });
+  };        
+
   return (
     <div className="app">
       <header className="app-header">
@@ -12,7 +22,7 @@ function App() {
 
       <main className="app-main">
         <aside className="sidebar">
-          <RepoIngest />
+          <RepoIngest onRepoAdded={addRepository}/>
 
           <div className="info-card">
             <h3>How it works</h3>
@@ -26,7 +36,7 @@ function App() {
         </aside>
 
         <section className="chat-section">
-          <ChatInterface />
+          <ChatInterface repositories={repositories}/>
         </section>
       </main>
     </div>

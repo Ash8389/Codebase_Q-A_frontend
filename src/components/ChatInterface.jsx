@@ -66,13 +66,16 @@ export default function ChatInterface() {
       <div className="namespace-bar">
         <Database size={14} />
         <label>Namespace:</label>
-        <input
-          type="text"
+        <select
           value={namespace}
           onChange={(e) => setNamespace(e.target.value)}
-          placeholder="e.g., E-Wallet-Backend"
-          className="namespace-input"
-        />
+        >
+          {repositories.map(repo => (
+            <option key={repo} value={repo}>
+              {repo}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="messages-area">

@@ -4,8 +4,10 @@ import { ingestRepo } from '../api/services'
 
 export default function RepoIngest() {
   const [url, setUrl] = useState('')
-  const [status, setStatus] = useState('idle') // idle | loading | success | error
+  const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState('')
+
+  console.log(url.substring(url.lastIndexOf("/")+1))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
