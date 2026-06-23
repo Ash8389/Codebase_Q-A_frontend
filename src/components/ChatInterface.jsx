@@ -1,20 +1,72 @@
-import { useState, useRef, useEffect } from 'react'
-import { Send, Bot, User, Loader2, FileCode, Zap, Database } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Send, Bot, User, Loader2, FileCode, Zap, Database, ChevronDown, Trash2 } from 'lucide-react'
 import { askQuestion } from '../api/services'
+import { getStoredNamespaces, NAMESPACES_KEY } from './RepoIngest'
 
-export default function ChatInterface() {
+const NS_SELECTED_KEY = 'selected_namespace'
+
+function readSelected() {
+  return localStorage.getItem(NS_SELECTED_KEY) || ''
+}
+
+export default function ChatInterface({ latestNamespace }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
-  const [namespace, setNamespace] = useState('E-Wallet-Backend') // <-- default to your repo
   const [isLoading, setIsLoading] = useState(false)
+  const [namespaces, setNamespaces] = useState(() => getStoredNamespaces())
+  const [namespace, setNamespace] = useState(() => {
+    const saved = readSelected()
+    const all = getStoredNamespaces()
+    // Use saved if still valid, else fall back to first available
+    return saved || all[0] || ''
+  })
+  const [customInput, setCustomInput] = useState('')
+  const [showCustom, setShowCustom] = useState(false)
   const messagesEndRef = useRef(null)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  // Refresh namespaces list (called after a new ingest)
+  const refreshNamespaces = useCallback(() => {
+    const updated = getStoredNamespaces()
+    setNamespaces(updated)
+    if (latestNamespace && !namespace) {
+      setNamespace(latestNamespace)
+      localStorage.setItem(NS_SELECTED_KEY, latestNamespace)
+    }
+  }, [latestNamespace, namespace])
+
+  useEffect(() => {
+    refreshNamespaces()
+  }, [latestNamespace])
+
+  const handleSelectChange = (e) => {
+    const val = e.target.value
+    if (val === '__custom__') {
+      setShowCustom(true)
+      return
+    }
+    setShowCustom(false)
+    setNamespace(val)
+    localStorage.setItem(NS_SELECTED_KEY, val)
+  }
+
+  const handleCustomConfirm = () => {
+    if (!customInput.trim()) return
+    setNamespace(customInput.trim())
+    localStorage.setItem(NS_SELECTED_KEY, customInput.trim())
+    setShowCustom(false)
+    setCustomInput('')
+  }
+
+  const handleClearNamespaces = () => {
+    if (!confirm('Clear all saved namespaces?')) return
+    localStorage.removeItem(NAMESPACES_KEY)
+    localStorage.removeItem(NS_SELECTED_KEY)
+    setNamespaces([])
+    setNamespace('')
   }
 
   useEffect(() => {
-    scrollToBottom()
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
   const handleSubmit = async (e) => {
@@ -27,8 +79,7 @@ export default function ChatInterface() {
     setIsLoading(true)
 
     try {
-      const { data } = await askQuestion(userMsg, namespace) // <-- pass namespace
-
+      const { data } = await askQuestion(userMsg, namespace)
       setMessages((prev) => [
         ...prev,
         {
@@ -66,22 +117,58 @@ export default function ChatInterface() {
       <div className="namespace-bar">
         <Database size={14} />
         <label>Namespace:</label>
-        <input
-          type="text"
-          value={namespace}
-          onChange={(e) => setNamespace(e.target.value)}
-          placeholder="e.g., E-Wallet-Backend"
-          className="namespace-input"
-        />
+
+        {namespaces.length > 0 ? (
+          <>
+            <div className="namespace-select-wrapper">
+              <select
+                value={showCustom ? '__custom__' : namespace}
+                onChange={handleSelectChange}
+                className="namespace-select"
+              >
+                {namespaces.map((ns) => (
+                  <option key={ns} value={ns}>{ns}</option>
+                ))}
+                <option value="__custom__">+ Custom…</option>
+              </select>
+              <ChevronDown size={12} className="select-chevron" />
+            </div>
+            <button
+              onClick={handleClearNamespaces}
+              className="btn-clear-ns"
+              title="Clear saved namespaces"
+            >
+              <Trash2 size={13} />
+            </button>
+          </>
+        ) : (
+          <span className="ns-empty-hint">Ingest a repo to populate</span>
+        )}
+
+        {showCustom && (
+          <div className="custom-ns-row">
+            <input
+              type="text"
+              value={customInput}
+              onChange={(e) => setCustomInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCustomConfirm()}
+              placeholder="e.g., my-org/my-repo"
+              className="namespace-input"
+              autoFocus
+            />
+            <button onClick={handleCustomConfirm} className="btn-ns-confirm">Use</button>
+          </div>
+        )}
       </div>
 
       <div className="messages-area">
-        {/* ... rest of your messages rendering stays the same ... */}
         {messages.length === 0 && (
           <div className="empty-state">
             <Bot size={48} opacity={0.3} />
             <p>Ask me anything about your codebase</p>
-            <span className="hint">Namespace: {namespace}</span>
+            <span className="hint">
+              {namespace ? `Namespace: ${namespace}` : 'Select a namespace above'}
+            </span>
           </div>
         )}
 
@@ -100,12 +187,8 @@ export default function ChatInterface() {
                     <div key={cidx} className="citation">
                       <FileCode size={14} />
                       <span className="cite-path">{cite.path}</span>
-                      <span className="cite-lines">
-                        L{cite.startLine}-{cite.endLine}
-                      </span>
-                      <span className="cite-score">
-                        {(cite.score * 100).toFixed(1)}%
-                      </span>
+                      <span className="cite-lines">L{cite.startLine}-{cite.endLine}</span>
+                      <span className="cite-score">{(cite.score * 100).toFixed(1)}%</span>
                     </div>
                   ))}
                 </div>
@@ -137,11 +220,11 @@ export default function ChatInterface() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about your codebase..."
-          disabled={isLoading}
+          placeholder={namespace ? `Ask about ${namespace}…` : 'Select a namespace first…'}
+          disabled={isLoading || !namespace}
           className="chat-input"
         />
-        <button type="submit" disabled={isLoading} className="btn-send">
+        <button type="submit" disabled={isLoading || !namespace} className="btn-send">
           {isLoading ? <Loader2 size={18} className="spin" /> : <Send size={18} />}
         </button>
       </form>

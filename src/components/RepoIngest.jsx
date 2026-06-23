@@ -2,7 +2,41 @@ import { useState } from 'react'
 import { GitBranch, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { ingestRepo } from '../api/services'
 
-export default function RepoIngest() {
+// ── Shared localStorage helpers ──────────────────────────────────────────────
+export const NAMESPACES_KEY = 'ingested_namespaces'
+
+export function getStoredNamespaces() {
+  try {
+    return JSON.parse(localStorage.getItem(NAMESPACES_KEY) || '[]')
+  } catch {
+    return []
+  }
+}
+
+export function addNamespace(namespace) {
+  const existing = getStoredNamespaces()
+  if (!existing.includes(namespace)) {
+    localStorage.setItem(NAMESPACES_KEY, JSON.stringify([namespace, ...existing]))
+    return true
+  }
+  return false
+}
+
+// Derive a clean namespace from a GitHub URL → "username/repo"
+function deriveNamespace(url) {
+  try {
+    const parts = new URL(url).pathname
+      .replace(/^\//, '')
+      .replace(/\.git$/, '')
+      .split('/')
+    return parts.slice(0, 2).join('/')
+  } catch {
+    return url
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function RepoIngest({ onNamespaceAdded }) {
   const [url, setUrl] = useState('')
   const [status, setStatus] = useState('idle') // idle | loading | success | error
   const [message, setMessage] = useState('')
@@ -16,8 +50,11 @@ export default function RepoIngest() {
 
     try {
       await ingestRepo(url)
+      const namespace = deriveNamespace(url)
+      addNamespace(namespace)
+      onNamespaceAdded?.(namespace)
       setStatus('success')
-      setMessage('Repository ingested successfully! Code chunks are being embedded.')
+      setMessage(`Ingested! Namespace: "${namespace}"`)
       setUrl('')
     } catch (err) {
       setStatus('error')

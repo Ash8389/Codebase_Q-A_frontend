@@ -63,6 +63,79 @@
   border-color: var(--primary);
 }
 
+.namespace-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.namespace-select {
+  appearance: none;
+  padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  max-width: 220px;
+}
+
+.namespace-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.select-chevron {
+  position: absolute;
+  right: 0.45rem;
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.btn-clear-ns {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.btn-clear-ns:hover {
+  color: var(--error);
+}
+
+.ns-empty-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.custom-ns-row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.btn-ns-confirm {
+  padding: 0.25rem 0.625rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-ns-confirm:hover {
+  background: var(--primary-hover);
+}
+
 .sidebar {
   display: flex;
   flex-direction: column;
