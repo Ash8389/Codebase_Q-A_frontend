@@ -24,15 +24,8 @@ export function addNamespace(namespace) {
 
 // Derive a clean namespace from a GitHub URL → "username/repo"
 function deriveNamespace(url) {
-  try {
-    const parts = new URL(url).pathname
-      .replace(/^\//, '')
-      .replace(/\.git$/, '')
-      .split('/')
-    return parts.slice(0, 2).join('/')
-  } catch {
-    return url
-  }
+  
+  return url.substring(url.astIndexOf("/"))
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -50,6 +43,7 @@ export default function RepoIngest({ onNamespaceAdded }) {
 
     try {
       await ingestRepo(url)
+
       const namespace = deriveNamespace(url)
       addNamespace(namespace)
       onNamespaceAdded?.(namespace)
