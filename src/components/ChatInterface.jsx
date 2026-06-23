@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Send, Bot, User, Loader2, FileCode, Zap, Database, ChevronDown, Trash2 } from 'lucide-react'
 import { askQuestion } from '../api/services'
 import { getStoredNamespaces, NAMESPACES_KEY } from './RepoIngest'
@@ -24,18 +24,14 @@ export default function ChatInterface({ latestNamespace }) {
   const [showCustom, setShowCustom] = useState(false)
   const messagesEndRef = useRef(null)
 
-  // Refresh namespaces list (called after a new ingest)
-  const refreshNamespaces = useCallback(() => {
+  // Re-read localStorage whenever a new repo is ingested
+  useEffect(() => {
+    if (!latestNamespace) return
     const updated = getStoredNamespaces()
     setNamespaces(updated)
-    if (latestNamespace && !namespace) {
-      setNamespace(latestNamespace)
-      localStorage.setItem(NS_SELECTED_KEY, latestNamespace)
-    }
-  }, [latestNamespace, namespace])
-
-  useEffect(() => {
-    refreshNamespaces()
+    // Auto-select the just-ingested namespace
+    setNamespace(latestNamespace)
+    localStorage.setItem(NS_SELECTED_KEY, latestNamespace)
   }, [latestNamespace])
 
   const handleSelectChange = (e) => {
