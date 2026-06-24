@@ -12,7 +12,7 @@ function readSelected() {
 export default function ChatInterface({ latestNamespace }) {
 
 
-  const { data } = await askQuestion(userMsg, namespace)
+  // const { data } = await askQuestion(userMsg, namespace)
 
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
