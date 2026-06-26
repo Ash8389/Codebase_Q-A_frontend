@@ -26,12 +26,12 @@ export default function ChatInterface({ latestNamespace }) {
 
   // Re-read localStorage whenever a new repo is ingested
   useEffect(() => {
-    if (!latestNamespace) return
+    if (!latestNamespace?.name) return
     const updated = getStoredNamespaces()
     setNamespaces(updated)
     // Auto-select the just-ingested namespace
-    setNamespace(latestNamespace)
-    localStorage.setItem(NS_SELECTED_KEY, latestNamespace)
+    setNamespace(latestNamespace.name)
+    localStorage.setItem(NS_SELECTED_KEY, latestNamespace.name)
   }, [latestNamespace])
 
   const handleSelectChange = (e) => {

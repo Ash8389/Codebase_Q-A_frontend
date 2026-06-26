@@ -22,10 +22,18 @@ export function addNamespace(namespace) {
   return false
 }
 
-// Derive a clean namespace from a GitHub URL → "username/repo"
+// Derive a clean namespace from a GitHub URL (matching backend logic)
 function deriveNamespace(url) {
-  
-  return url.substring(url.lastIndexOf("/") + 1)
+  let cleanUrl = url;
+  if (!cleanUrl.includes('.git')) {
+    cleanUrl = cleanUrl + '.git';
+  }
+  const lastSlash = cleanUrl.lastIndexOf('/');
+  const lastDot = cleanUrl.lastIndexOf('.');
+  if (lastSlash !== -1 && lastDot !== -1 && lastSlash < lastDot) {
+    return cleanUrl.substring(lastSlash + 1, lastDot);
+  }
+  return cleanUrl.substring(lastSlash + 1);
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -42,11 +50,12 @@ export default function RepoIngest({ onNamespaceAdded }) {
     setMessage('Cloning and chunking repository...')
 
     try {
-      await ingestRepo(url)
+      const normalizedUrl = url.trim().replace(/\/+$/, '')
+      await ingestRepo(normalizedUrl)
 
-      const namespace = deriveNamespace(url)
+      const namespace = deriveNamespace(normalizedUrl)
       addNamespace(namespace)
-      onNamespaceAdded?.(namespace)
+      onNamespaceAdded?.({ name: namespace, timestamp: Date.now() })
       setStatus('success')
       setMessage(`Ingested! Namespace: "${namespace}"`)
       setUrl('')

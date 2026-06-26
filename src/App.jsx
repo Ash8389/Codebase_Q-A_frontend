@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import RepoIngest from './components/RepoIngest'
 import ChatInterface from './components/ChatInterface'
 import './App.css'
 
 function App() {
+  const [latestNamespace, setLatestNamespace] = useState(null)
+
   return (
     <div className="app">
       <header className="app-header">
@@ -12,7 +15,7 @@ function App() {
 
       <main className="app-main">
         <aside className="sidebar">
-          <RepoIngest />
+          <RepoIngest onNamespaceAdded={setLatestNamespace} />
 
           <div className="info-card">
             <h3>How it works</h3>
@@ -26,7 +29,7 @@ function App() {
         </aside>
 
         <section className="chat-section">
-          <ChatInterface />
+          <ChatInterface latestNamespace={latestNamespace} />
         </section>
       </main>
     </div>
